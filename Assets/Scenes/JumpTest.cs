@@ -18,12 +18,11 @@ public class JumpTest : MonoBehaviour
     // Update is called once per frame
     void OnCollisionStay(Collision col)
     {
-        Debug.Log("Space");
-
         if(Input.GetKey(KeyCode.Space))
         {
             if(col.gameObject.CompareTag("Ground"))
             {
+                Debug.Log("Space");
                 PlayerRigidbody.AddForce(transform.up * JumpForce);
             }
         }
