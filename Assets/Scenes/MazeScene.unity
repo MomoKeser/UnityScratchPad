@@ -217,6 +217,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1679728340}
   - component: {fileID: 1679728341}
+  - component: {fileID: 1679728342}
   m_Layer: 0
   m_Name: MazeGenerator
   m_TagString: Untagged
@@ -254,6 +255,22 @@ MonoBehaviour:
   width: 30
   height: 30
   wallPrefab: {fileID: 7715999787343549275, guid: 2fef971d49e0f0a4d834e876ddd9e0bd, type: 3}
+  enemyWallPrefab: {fileID: 7344089799638238258, guid: 442e28de85dd2794db722ff482955af8, type: 3}
+--- !u!114 &1679728342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1679728339}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd7990fad79e3994f97d33ccf44e51c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  width: 30
+  height: 30
+  wallPrefab: {fileID: 7344089799638238258, guid: 442e28de85dd2794db722ff482955af8, type: 3}
 --- !u!1 &2009579147
 GameObject:
   m_ObjectHideFlags: 0

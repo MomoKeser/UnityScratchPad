@@ -10,8 +10,6 @@
     - If the index you want to place at outside of the array, dont place it.
 
 
-
-
 */
 
 using System.Collections;
@@ -112,7 +110,59 @@ public class SpaceInventory : MonoBehaviour
     AddItemToInventory(item2);
     AddItemToInventory(item3);
   }
-    
+  
+  public bool IsInsideBox(Vector2 boxCenter, Vector2 boxSize, Vector2 pointToCheck)
+  {
+    //1. Compare the position to the box's topmost, bottommost, leftmost and rightmost points.
+    //In order to do that, I need to calculate all those points.
+    float leftMostPoint = boxCenter.x - boxSize.x/2f;
+    float rightMostPoint = boxCenter.x + boxSize.x/2f;
+    float bottomMostPoint = boxCenter.y - boxSize.y/2f;
+    float topMostPoint = boxCenter.y + boxSize.y/2f;
 
+    //2. If the pointToCheck is in the box, return true. Else, return false.
+    bool isInBox = leftMostPoint <= pointToCheck.x && pointToCheck.x <= rightMostPoint &&
+                   bottomMostPoint <= pointToCheck.y && pointToCheck.y <= topMostPoint;
+        
+    return isInBox;
+  }
+    
+  public RectTransform box;
+  public UnityEngine.UI.Image boxImage;
+
+  bool isDraggingBox = false;
+  Vector2 dragOffset;
+
+  private void Update()
+  {
+    Vector3 mousePosition = Input.mousePosition;
+
+    bool isInsideBox = IsInsideBox(box.anchoredPosition + new Vector2(Screen.width/2f, Screen.height/2f), box.rect.size, mousePosition);
+      
+    Debug.Log(box.anchoredPosition + new Vector2(Screen.width/2f, Screen.height/2f));
+
+    if(Input.GetMouseButton(0) && isInsideBox)
+    {
+      isDraggingBox = true;
+      dragOffset = box.anchoredPosition - new Vector2(mousePosition.x, mousePosition.y) - new Vector2(Screen.width/2f, Screen.height/2f);
+    }
+    
+    if(Input.GetMouseButtonUp(0))
+    {
+      isDraggingBox = false;
+    }
+    
+    if (isDraggingBox)
+    {
+      box.anchoredPosition = box.anchoredPosition + dragOffset - new Vector2(Screen.width/2f, Screen.height/2f);
+      boxImage.color = new Color(0f, 1f, 0f, 1f);
+    }
+    else
+    {
+      boxImage.color = new Color(1f, 0f, 0f, 1f);
+
+    }
+
+  }
 
 }
