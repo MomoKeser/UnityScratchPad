@@ -28,39 +28,49 @@ public class SpaceInventory : MonoBehaviour
     public string name;
   }
   
-  Item [,] inventory = new Item[10, 10]; //Multidimensional arrays
-  
-  public void AddItemToInventory(Item item)
+  Item [,] inventory = new Item[8, 8]; //Multidimensional arrays
+  asdasffs
+  public bool FitsInInventory(Item item, Vector2Int position)
   {
     int inventoryWidth  = inventory.GetLength(0);
     int inventoryHeight = inventory.GetLength(1);
     
-    int itemBottom = item.positionY + item.height - 1;
-    int itemRight = item.positionX + item.width - 1;
-    int itemTop = item.positionY;
-    int itemLeft = item.positionX;
+    int itemBottom = position.y + item.height - 1;
+    int itemRight = position.x + item.width - 1;
+    int itemTop = position.y;
+    int itemLeft = position.x;
     
-    bool fitsInInventory =  itemBottom < inventoryHeight &&
-                                                itemTop >= 0 &&
-                                                itemRight < inventoryWidth &&
-                                                itemLeft >= 0;
+    bool inInventoryBorders = itemBottom < inventoryHeight &&
+            itemTop >= 0 &&
+            itemRight < inventoryWidth &&
+            itemLeft >= 0;  
     
+    if(!inInventoryBorders)
+    {
+      return false;
+    }
+            
+    for(int row = position.y; row < item.height + position.y; row++)
+    {
+      for(int col = position.x; col < item.width + position.x; col++)
+      {
+        if(inventory[col, row] != null)
+        {
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  }
+  
+  public bool AddItemToInventory(Item item)
+  {
+    bool fitsInInventory = FitsInInventory(item, new Vector2Int(item.positionX, item.positionY));
     if(!fitsInInventory)
     {
       Debug.Log($"ERROR: Item {item.name} is outside of inventory boundaries!");
-      return;
-    }
-    
-    for(int row = 0 + item.positionY; row < item.height + item.positionY; row++)
-    {
-      for (int col = 0 + item.positionX; col < item.width + item.positionX; col++)
-      {
-            if(inventory[col, row] != null)
-        {
-          Debug.Log($"ERROR: Item {item.name} is colliding with another item");
-          return;
-        }
-      }
+      return false;
     }
     
     for(int row = 0 + item.positionY; row < item.height + item.positionY; row++)
@@ -72,9 +82,25 @@ public class SpaceInventory : MonoBehaviour
     }
     
     Debug.Log($"Item {item.name} is in the inventory");
-
+    
+    for(int y = 0; y < item.height; y++)
+    {
+      for(int x = 0; x < item.width; x++)
+      {
+        Vector2Int cellIndex = new Vector2Int(item.positionX + x, item.positionY + y);
+        int cellFlatIndex = cellIndex.y * inventory.GetLength(0) + cellIndex.x;
+        tiles[cellFlatIndex].GetComponent<UnityEngine.UI.Image>().color = Color.red;
+      }
+    }
+    
+    return true;
   }
   
+  List<GameObject> tiles = new List<GameObject>();
+  public GameObject cellPrefab;
+  public Transform canvas;
+  public Vector2 debugInventoryScreenOffset;
+
   private void Awake()
   {
     Item item0 = new Item();
@@ -95,20 +121,33 @@ public class SpaceInventory : MonoBehaviour
     item2.positionX = 5;
     item2.positionY = 1;
     item2.width = 2;
-    item2.height = 2;
+    item2.height = 1;
     item2.name = "Item 2";
     
     Item item3 = new Item();
     item3.positionX = 0;
     item3.positionY = 2;
-    item3.width = 2;
+    item3.width = 1;
     item3.height = 2;
     item3.name = "Item 3";
     
-    AddItemToInventory(item0);
-    AddItemToInventory(item1);
+    for(int y = 0; y < inventory.GetLength(1); y++)
+    {
+      for(int x = 0; x < inventory.GetLength(0); x++)
+      {
+        GameObject tile = GameObject.Instantiate(cellPrefab);
+        tile.GetComponent<RectTransform>().anchoredPosition = new Vector2(x * cellWidth, Screen.height - y * cellHeight) + debugInventoryScreenOffset;
+        tile.transform.parent = canvas;
+        tiles.Add(tile);
+      }
+    }
+    
+    // AddItemToInventory(item0);
+    // AddItemToInventory(item1);
     AddItemToInventory(item2);
     AddItemToInventory(item3);
+    
+    
   }
   
   public bool IsInsideBox(Vector2 boxCenter, Vector2 boxSize, Vector2 pointToCheck)
@@ -126,43 +165,102 @@ public class SpaceInventory : MonoBehaviour
         
     return isInBox;
   }
+
+  public bool IsInsideBox(RectTransform rectTransform, Vector2 pointToCheck)
+  {
+    Vector2 boxCenter = new Vector2((0.5f - rectTransform.pivot.x) * rectTransform.rect.width, (0.5f - rectTransform.pivot.y) * rectTransform.rect.height) + rectTransform.anchoredPosition;
+    return IsInsideBox(boxCenter, rectTransform.rect.size, pointToCheck);
+  }
     
   public RectTransform box;
   public UnityEngine.UI.Image boxImage;
 
   bool isDraggingBox = false;
-  Vector2 dragOffset;
+  Vector3 dragOffset;
+  Item draggedItem = null;
+  
+  public float cellWidth;
+  public float cellHeight;
+  
+  public Vector2Int WorldTo2dIndex(Vector2 point, Vector2 offset)
+  {
+    Vector2 transformedPoint = new Vector2(point.x, -point.y) + new Vector2(-debugInventoryScreenOffset.x, debugInventoryScreenOffset.y) + new Vector2(Screen.width/2f, Screen.height/2f);
+    return new Vector2Int((int)(transformedPoint.x / cellWidth), (int)(transformedPoint.y / cellHeight));
+  }
 
   private void Update()
   {
-    Vector3 mousePosition = Input.mousePosition;
+    Vector3 mousePosition = Input.mousePosition - new Vector3(Screen.width/2f, Screen.height/2f);//The mouse is in screen space, the rect transform is in centered-screen space
 
-    bool isInsideBox = IsInsideBox(box.anchoredPosition + new Vector2(Screen.width/2f, Screen.height/2f), box.rect.size, mousePosition);
-      
-    Debug.Log(box.anchoredPosition + new Vector2(Screen.width/2f, Screen.height/2f));
-
-    if(Input.GetMouseButton(0) && isInsideBox)
+    bool isInsideBox = IsInsideBox(box, mousePosition);
+        
+    Vector2Int mouseIndex = WorldTo2dIndex(mousePosition, debugInventoryScreenOffset);
+    int mouseFlatIndex = mouseIndex.y * inventory.GetLength(0) + mouseIndex.x;
+    
+    if(Input.GetMouseButtonDown(0))
     {
-      isDraggingBox = true;
-      dragOffset = box.anchoredPosition - new Vector2(mousePosition.x, mousePosition.y) - new Vector2(Screen.width/2f, Screen.height/2f);
+      if(inventory[mouseIndex.x, mouseIndex.y] != null)
+      {
+        draggedItem = inventory[mouseIndex.x, mouseIndex.y];
+        Debug.Log("Dragging Item!");
+      }
+      // Item item0 = new Item();
+      // item0.positionX = mouseIndex.x;
+      // item0.positionY = mouseIndex.y;
+      // item0.width = 2;
+      // item0.height = 2;
+      // item0.name = "Item 0";
+      // if(AddItemToInventory(item0))
+      // {
+      //   for(int y = 0; y < item0.height; y++)
+      //   {
+      //     for(int x = 0; x < item0.width; x++)
+      //     {
+      //       Vector2Int cellIndex = new Vector2Int(item0.positionX + x, item0.positionY + y);
+      //       int cellFlatIndex = cellIndex.y * inventory.GetLength(0) + cellIndex.x;
+      //       tiles[cellFlatIndex].GetComponent<UnityEngine.UI.Image>().color = Color.red;
+      //     }
+      //   }
+      // }
     }
     
     if(Input.GetMouseButtonUp(0))
     {
-      isDraggingBox = false;
+      if(draggedItem != null)
+      {
+        //TODO: Check if you can place this item where the mouse is
+        if(FitsInInventory(draggedItem, mouseIndex))
+        {
+        
+          //Remove the dragged item from the inventory
+          for(int y = 0; y < draggedItem.height; y++)
+          {
+            for(int x = 0; x < draggedItem.width; x++)
+            {
+              Vector2Int cellIndex = new Vector2Int(draggedItem.positionX + x, draggedItem.positionY + y);
+              int cellFlatIndex = cellIndex.y * inventory.GetLength(0) + cellIndex.x;
+              tiles[cellFlatIndex].GetComponent<UnityEngine.UI.Image>().color = Color.white;
+              inventory[cellIndex.x, cellIndex.y] = null;
+            }
+          }
+          
+          draggedItem.positionX = mouseIndex.x;
+          draggedItem.positionY = mouseIndex.y;
+          
+          
+          AddItemToInventory(draggedItem);
+          
+          
+        }
+        else
+        {
+          Debug.Log("Doesnt fit in inventory");
+        }
+      }
+      
+      draggedItem = null;
     }
     
-    if (isDraggingBox)
-    {
-      box.anchoredPosition = box.anchoredPosition + dragOffset - new Vector2(Screen.width/2f, Screen.height/2f);
-      boxImage.color = new Color(0f, 1f, 0f, 1f);
-    }
-    else
-    {
-      boxImage.color = new Color(1f, 0f, 0f, 1f);
-
-    }
-
   }
 
 }

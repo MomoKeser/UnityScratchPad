@@ -257,11 +257,11 @@ RectTransform:
   m_Father: {fileID: 697029491}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 162.25, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &887930387
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -275,7 +275,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -558,5 +558,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07180655be7bd1944ad2c8aed09c2e28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cellPrefab: {fileID: 5345413208581129187, guid: 99a88718361e81a4298abab9a0fd49fa, type: 3}
+  canvas: {fileID: 697029491}
+  debugInventoryScreenOffset: {x: 0, y: 0}
   box: {fileID: 887930386}
   boxImage: {fileID: 887930387}
+  cellWidth: 100
+  cellHeight: 100
